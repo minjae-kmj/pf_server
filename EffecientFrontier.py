@@ -186,7 +186,7 @@ class EfficientFrontierSemiAbsoluteCalculator:
         }
 
     def get_maximum_sharpe(self):
-        ef = EfficientSemiAbsoluteDeviation(real_returns, predicted_returns)
+        ef = EfficientSemiAbsoluteDeviation(self.real_returns, self.predicted_returns)
         # ef = EfficientFrontier(self.mu, self.S)
         # ef = EfficientSemivariance(self.mu, self.S)
         weights = ef.max_sharpe()
@@ -201,7 +201,7 @@ class EfficientFrontierSemiAbsoluteCalculator:
         }
 
     def get_minimum_risk(self):
-        ef = EfficientFrontier(self.mu, self.S)
+        ef = EfficientSemiAbsoluteDeviation(self.real_returns, self.predicted_returns)
         # ef = EfficientSemivariance(self.mu, self.S)
         weights = ef.min_volatility()
         # weights = ef.min_semivariance()
@@ -215,9 +215,9 @@ class EfficientFrontierSemiAbsoluteCalculator:
         }
 
     def get_maximum_return(self, target_volatility=100):
-        ef = EfficientFrontier(self.mu, self.S)
+        ef = EfficientSemiAbsoluteDeviation(self.real_returns, self.predicted_returns)
         # ef = EfficientSemivariance(self.mu, self.S)
-        weights = ef.efficient_risk(target_volatility=target_volatility)
+        weights = ef.efficient_risk(target_semi_deviation=target_volatility)
         # weights = ef.efficient_risk(target_semideviation=target_volatility)
         cleaned_weights = ef.clean_weights()
         rt, vol, shp = ef.portfolio_performance(verbose=False)
@@ -242,7 +242,7 @@ class EfficientFrontierSemiAbsoluteCalculator:
         return rslt
 
     def get_performance_by_weight(self, weights):
-        ef = EfficientFrontier(self.mu, self.S)
+        ef = EfficientSemiAbsoluteDeviation(self.real_returns, self.predicted_returns)
         # ef = EfficientSemivariance(self.mu, self.S)
         weights_dic = {name: weight for name, weight in zip(self.names, weights)}
         ef.set_weights(weights_dic)
