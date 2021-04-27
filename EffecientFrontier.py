@@ -46,9 +46,7 @@ class EfficientFrontierCalculator:
 
     def get_maximum_sharpe(self):
         ef = EfficientFrontier(self.mu, self.S)
-        # ef = EfficientSemivariance(self.mu, self.S)
         weights = ef.max_sharpe()
-        # weights = ef.max_quadratic_utility()
         cleaned_weights = ef.clean_weights()
         rt, vol, shp = ef.portfolio_performance(verbose=False)
         return {
@@ -60,9 +58,7 @@ class EfficientFrontierCalculator:
 
     def get_minimum_risk(self):
         ef = EfficientFrontier(self.mu, self.S)
-        # ef = EfficientSemivariance(self.mu, self.S)
         weights = ef.min_volatility()
-        # weights = ef.min_semivariance()
         cleaned_weights = ef.clean_weights()
         rt, vol, shp = ef.portfolio_performance(verbose=False)
         return {
@@ -74,9 +70,7 @@ class EfficientFrontierCalculator:
 
     def get_maximum_return(self, target_volatility=100):
         ef = EfficientFrontier(self.mu, self.S)
-        # ef = EfficientSemivariance(self.mu, self.S)
         weights = ef.efficient_risk(target_volatility=target_volatility)
-        # weights = ef.efficient_risk(target_semideviation=target_volatility)
         cleaned_weights = ef.clean_weights()
         rt, vol, shp = ef.portfolio_performance(verbose=False)
         return {
@@ -101,7 +95,6 @@ class EfficientFrontierCalculator:
 
     def get_performance_by_weight(self, weights):
         ef = EfficientFrontier(self.mu, self.S)
-        # ef = EfficientSemivariance(self.mu, self.S)
         weights_dic = {name: weight for name, weight in zip(self.names, weights)}
         ef.set_weights(weights_dic)
         rt, vol, shp = ef.portfolio_performance(verbose=False)
@@ -273,7 +266,7 @@ class EfficientFrontierSemiAbsoluteCalculator:
         self.predicted_returns = predicted_returns
 
     @staticmethod
-    def get_weights_object(self, weight_dic: dict):
+    def get_weights_object(weight_dic: dict):
         items = []
         values = []
         for item, value in weight_dic.items():
@@ -286,10 +279,7 @@ class EfficientFrontierSemiAbsoluteCalculator:
 
     def get_maximum_sharpe(self):
         ef = EfficientSemiAbsoluteDeviation(self.real_returns, self.predicted_returns)
-        # ef = EfficientFrontier(self.mu, self.S)
-        # ef = EfficientSemivariance(self.mu, self.S)
-        weights = ef.max_sharpe()
-        # weights = ef.max_quadratic_utility()
+        weights = ef.max_quadratic_utility()
         cleaned_weights = ef.clean_weights()
         rt, vol, shp = ef.portfolio_performance(verbose=False)
         return {
@@ -301,9 +291,7 @@ class EfficientFrontierSemiAbsoluteCalculator:
 
     def get_minimum_risk(self):
         ef = EfficientSemiAbsoluteDeviation(self.real_returns, self.predicted_returns)
-        # ef = EfficientSemivariance(self.mu, self.S)
         weights = ef.min_volatility()
-        # weights = ef.min_semivariance()
         cleaned_weights = ef.clean_weights()
         rt, vol, shp = ef.portfolio_performance(verbose=False)
         return {
@@ -315,9 +303,7 @@ class EfficientFrontierSemiAbsoluteCalculator:
 
     def get_maximum_return(self, target_volatility=100):
         ef = EfficientSemiAbsoluteDeviation(self.real_returns, self.predicted_returns)
-        # ef = EfficientSemivariance(self.mu, self.S)
         weights = ef.efficient_risk(target_semi_deviation=target_volatility)
-        # weights = ef.efficient_risk(target_semideviation=target_volatility)
         cleaned_weights = ef.clean_weights()
         rt, vol, shp = ef.portfolio_performance(verbose=False)
         return {
@@ -331,7 +317,8 @@ class EfficientFrontierSemiAbsoluteCalculator:
         min_vol = self.get_minimum_risk()["risk"]
         max_vol = max(self.get_maximum_sharpe()["risk"], self.get_maximum_return()["risk"])
 
-        min_vol = math.ceil(min_vol * 1000) / 1000
+        min_vol_ceil = math.ceil(min_vol * 1000) / 1000
+        min_vol = min_vol_ceil + 0.001 if min_vol_ceil == min_vol_ceil else min_vol_ceil
         max_vol = math.ceil(max_vol * 1000) / 1000
 
         rslt = []
@@ -342,7 +329,6 @@ class EfficientFrontierSemiAbsoluteCalculator:
 
     def get_performance_by_weight(self, weights):
         ef = EfficientSemiAbsoluteDeviation(self.real_returns, self.predicted_returns)
-        # ef = EfficientSemivariance(self.mu, self.S)
         weights_dic = {name: weight for name, weight in zip(self.names, weights)}
         ef.set_weights(weights_dic)
         rt, vol, shp = ef.portfolio_performance(verbose=False)
