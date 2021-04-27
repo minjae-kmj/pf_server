@@ -6,7 +6,7 @@ class Ticker:
         self.path = "./dat"
         self.name_dic = {}
 
-        with open(f'{self.path}/all.csv') as file:
+        with open(f'{self.path}/all.csv', encoding='euc-kr') as file:
             reader = csv.reader(file)
             for row in reader:
                 if len(row) >= 2:
@@ -15,7 +15,7 @@ class Ticker:
     def write_file(self, market: str):
         from pykrx import stock
         tickers = stock.get_market_ticker_list(market="ALL")
-        with open(f'{self.path}/{market.lower()}.csv', 'w') as f:
+        with open(f'{self.path}/{market.lower()}.csv', 'w', encoding='euc-kr') as f:
             for code in tickers:
                 f.writelines(f'{code},{stock.get_market_ticker_name(code)}\n')
             if market == "ALL":
@@ -25,7 +25,7 @@ class Ticker:
 
     def get_ticker_list(self, market: str):
         results = []
-        with open(f'{self.path}/{market.lower()}.csv') as file:
+        with open(f'{self.path}/{market.lower()}.csv', encoding='euc-kr') as file:
             reader = csv.reader(file)
             for row in reader:
                 if len(row) >= 2:

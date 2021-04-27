@@ -14,7 +14,7 @@ class Etf:
 
     def write_file(self):
         from pykrx import stock
-        with open(f'{self.path}/etf.csv', 'w') as f:
+        with open(f'{self.path}/etf.csv', 'w', encoding='euc-kr') as f:
             f.writelines(f'Code,Name,Comp. Code,Amount,Cash,Percent\n')
             tickers = stock.get_etf_ticker_list()
             for idx, code in enumerate(tickers):
@@ -30,7 +30,7 @@ class Etf:
     def get_composition_info(self):
         self.composition_dict = defaultdict(list)
         self.reverse_dict = defaultdict(list)
-        with open(f'{self.path}/etf.csv') as file:
+        with open(f'{self.path}/etf.csv', encoding='euc-kr') as file:
             reader = csv.reader(file)
             next(reader)
             for row in reader:

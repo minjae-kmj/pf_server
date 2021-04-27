@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from EffecientFrontier import EfficientFrontierCalculator
+from EffecientFrontier import EfficientFrontierCalculator, EfficientFrontierSemiAbsoluteCalculator
 from Ticker import ticker
 import FinanceDataReader as fdr
 from Etf import etf
@@ -90,6 +90,22 @@ def get_similar_eft():
     if limit is None:
         limit = 5
     return jsonify(etf.calc_match_score(codes=inputs["codes"], limit_count=limit))
+
+
+@app.route("/dl_frontier", methods=["POST"])
+def calc_dl_efficient_frontier():
+    inputs = request.get_json()
+    print(inputs)
+    ef = EfficientFrontierSemiAbsoluteCalculator(inputs["codes"], inputs["predict_period"], inputs["absolute_error_period"])
+    results = {
+        "frontier": ef.get_frontier(),
+        "specific": {
+            "min_risk": ef.get_minimum_risk(),
+            "max_returns": ef.get_maximum_return(),
+            "max_sharpe": ef.get_maximum_sharpe()
+        }
+    }
+    return jsonify(results)
 
 
 if __name__ == "__main__":

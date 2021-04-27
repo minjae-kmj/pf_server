@@ -1,0 +1,15 @@
+finance-datareader
+pykrx
+yfinance~=0.1.59
+PyPortfolioOpt~=1.4.1
+pulp
+BeautifulSoup4
+scikit-learn
+cvxpy~=1.1.12
+Flask~=1.1.2
+numpy~=1.19.5
+pandas~=1.2.4
+scipy~=1.6.2
+setuptools~=56.0.0
+DateTime~=4.3
+tensorflow~=2.4.1
