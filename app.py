@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
-from EffecientFrontier import EfficientFrontierSemiVarianceCalculator as EfficientFrontierCalculator
+from EffecientFrontier import EfficientFrontierSemiVarianceCalculator as EfficientFrontierCalculator, \
+    EfficientFrontierSemiVarianceCalculator
 from EffecientFrontier import EfficientFrontierSemiAbsoluteCalculator
 from Ticker import ticker
 import FinanceDataReader as fdr
@@ -39,7 +40,15 @@ def get_stock_info(code):
 @app.route("/frontier", methods=["POST"])
 def calc_efficient_frontier():
     inputs = request.get_json()
-    ef = EfficientFrontierCalculator(inputs["codes"])
+    if inputs["mode"] == "original":
+        ef = EfficientFrontierCalculator(inputs["codes"])
+    elif inputs["mode"] == "semi_variance":
+        ef = EfficientFrontierSemiVarianceCalculator(inputs["codes"])
+    elif inputs["mode"] == "semi_absolute":
+        ef = EfficientFrontierSemiAbsoluteCalculator(inputs["codes"], inputs["predict_period"], inputs["absolute_error_period"])
+    else:
+        return "please check your input: mode", 400
+
     results = {
         "frontier": ef.get_frontier(),
         "specific": {
@@ -91,24 +100,6 @@ def get_similar_eft():
     if limit is None:
         limit = 5
     return jsonify(etf.calc_match_score(codes=inputs["codes"], limit_count=limit))
-
-
-@app.route("/dl_frontier", methods=["POST"])
-def calc_dl_efficient_frontier():
-    inputs = request.get_json()
-    print(inputs)
-    ef = EfficientFrontierSemiAbsoluteCalculator(inputs["codes"], inputs["predict_period"],
-                                                 inputs["absolute_error_period"])
-    results = {
-        "frontier": ef.get_frontier(),
-        "specific": {
-            "min_risk": ef.get_minimum_risk(),
-            "max_returns": ef.get_maximum_return(),
-            "max_sharpe": ef.get_maximum_sharpe()
-        }
-    }
-    return jsonify(results)
-
 
 if __name__ == "__main__":
     app.run(debug=True)
