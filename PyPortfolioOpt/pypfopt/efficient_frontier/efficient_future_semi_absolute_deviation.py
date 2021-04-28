@@ -51,6 +51,7 @@ class EfficientSemiAbsoluteDeviation(EfficientFrontier):
 
     def __init__(
         self,
+        mu,
         close_returns,
         predicted_close_returns,
         frequency=5,
@@ -96,6 +97,7 @@ class EfficientSemiAbsoluteDeviation(EfficientFrontier):
             solver_options=solver_options,
         )
 
+        self.mu = mu
         # self.close_returns = self._validate_returns(close_returns)
         self.close_returns = pd.DataFrame(close_returns)
         # self.predicted_returns = self._validate_returns(predicted_close_returns)
@@ -119,8 +121,8 @@ class EfficientSemiAbsoluteDeviation(EfficientFrontier):
         :return: asset weights for the volatility-minimising portfolio
         :rtype: OrderedDict
         """
-        predict_error = cp.sum((self.close_returns.values - self.predicted_close_returns.values) @ self._w)
-        objective_func = cp.sum((cp.abs(predict_error) + predict_error) / (2 * self._T))
+        predict_error = cp.sum(self._w @ np.array(self.close_returns.values - self.predicted_close_returns.values).T)
+        objective_func = cp.sum((cp.abs(predict_error) + predict_error)) / (2 * self._T)
         self._objective = objective_func
 
         for obj in self._additional_objectives:
@@ -150,7 +152,7 @@ class EfficientSemiAbsoluteDeviation(EfficientFrontier):
         if risk_aversion <= 0:
             raise ValueError("risk aversion coefficient must be greater than zero")
 
-        predict_error = cp.sum((self.close_returns.values - self.predicted_close_returns.values) @ self._w)
+        predict_error = cp.sum(self._w @ np.array(self.close_returns.values - self.predicted_close_returns.values).T)
         objective_func = cp.sum((cp.abs(predict_error) + predict_error) / (2 * self._T))
         # mu = objective_functions.portfolio_return(self._w, self.close_returns.values)
         mu = objective_functions.portfolio_return(
@@ -163,7 +165,7 @@ class EfficientSemiAbsoluteDeviation(EfficientFrontier):
 
         # self._constraints.append((cp.abs(predict_error) + predict_error) / 2 >= 0)
         # self._constraints.append((cp.abs(predict_error) + predict_error) / 2 >= cp.sum(predict_error))
-        self._constraints.append(cp.sum(self.close_returns.values @ self._w) >= 0.001)
+        self._constraints.append(cp.sum(self._w @ np.array(self.close_returns.mean(axis=0)).T) >= 0.001)
         self._constraints.append(cp.sum(self._w) == 1)
         self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
@@ -185,7 +187,6 @@ class EfficientSemiAbsoluteDeviation(EfficientFrontier):
         self._objective = objective_functions.portfolio_return(
             self._w, np.array(self.close_returns.mean(axis=0)).T, negative=False
         )
-        print(self._objective)
         for obj in self._additional_objectives:
             self._objective += obj
 
@@ -218,7 +219,7 @@ class EfficientSemiAbsoluteDeviation(EfficientFrontier):
         """
         if not isinstance(target_return, float) or target_return < 0:
             raise ValueError("target_return should be a positive float")
-        if target_return > np.abs(self.close_returns.values).max():
+        if target_return > np.abs(np.array(self.close_returns.mean(axis=0)).T).max():
             raise ValueError(
                 "target_return must be lower than the largest expected return"
             )
@@ -230,11 +231,12 @@ class EfficientSemiAbsoluteDeviation(EfficientFrontier):
         for obj in self._additional_objectives:
             self._objective += obj
 
-        self._constraints.append(cp.sum(self.close_returns.values @ self._w) >= target_return)
-
+        # self._constraints.append(cp.sum(self.close_returns.values @ self._w) >= target_return)
+        # np.array(self.close_returns.mean(axis=0)).T
+        self._constraints.append(cp.sum(self._w @ np.array(self.close_returns.mean(axis=0)).T) >= target_return)
         # self._constraints.append((cp.abs(predict_error) + predict_error) / 2 >= 0)
         # self._constraints.append((cp.abs(predict_error) + predict_error) / 2 >= cp.sum(predict_error))
-        self._constraints.append(cp.sum(self.close_returns.values @ self._w) >= 0.001)
+        # self._constraints.append(cp.sum(self.close_returns.values @ self._w) >= 0.001)
         self._constraints.append(cp.sum(self._w) == 1)
         self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
@@ -254,13 +256,12 @@ class EfficientSemiAbsoluteDeviation(EfficientFrontier):
         :return: expected return, semiDeviation, Sortino ratio.
         :rtype: (float, float, float)
         """
-        print(np.array(self.close_returns.mean(axis=0)))
         mu = objective_functions.portfolio_return(
-            self.weights, np.array(self.close_returns.mean(axis=0)).T, negative=False
+            self.weights, self.mu, negative=False
         )
         portfolio_returns = self.close_returns @ self.weights
         drops = np.fmin(portfolio_returns, 0)
-        semi_absolute_deviation = np.sum(np.square(drops)) / self._T / self.frequency
+        semi_absolute_deviation = np.sum(np.square(drops)) / self._T * self.frequency
         semi_deviation = np.sqrt(semi_absolute_deviation)
         sortino_ratio = (mu - risk_free_rate) / semi_deviation
 

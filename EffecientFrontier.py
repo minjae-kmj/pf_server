@@ -249,14 +249,18 @@ class EfficientFrontierSemiAbsoluteCalculator:
 
         df = yf.download([code + ".ks" for code in codes], start=START_DATE)
         df = df.rename(columns={code + ".KS": name for code, name in zip(self.codes, self.names)})
-        df = expected_returns.returns_from_prices(df)
-        df = df.replace([np.inf, -np.inf], np.nan).fillna(method='ffill').dropna()
 
-        total_data_count = df.shape[0]
-        real_returns = df['Adj Close'].iloc[total_data_count - absolute_error_period:, :]
+        pct_df = expected_returns.returns_from_prices(df)
+        pct_df = pct_df.replace([np.inf, -np.inf], np.nan).fillna(method='ffill').dropna()
 
+        total_data_count = pct_df.shape[0]
+        real_returns = pct_df['Adj Close'].iloc[total_data_count - absolute_error_period:, :]
+
+        # if mu is calculated based on "specified period"
+        self.mu = expected_returns.mean_historical_return(df['Adj Close'].iloc[total_data_count - absolute_error_period:, :])
+        # if mu : 1 year
+        self.mu = expected_returns.mean_historical_return(df['Adj Close'])
         predicted_returns = real_returns.copy()
-        print(predicted_returns.shape)
 
         for name in X_train:
             agg_data = []
@@ -284,7 +288,7 @@ class EfficientFrontierSemiAbsoluteCalculator:
         }
 
     def get_maximum_sharpe(self):
-        ef = EfficientSemiAbsoluteDeviation(self.real_returns, self.predicted_returns)
+        ef = EfficientSemiAbsoluteDeviation(self.mu, self.real_returns, self.predicted_returns)
         weights = ef.max_quadratic_utility()
         cleaned_weights = ef.clean_weights()
         rt, vol, shp = ef.portfolio_performance(verbose=False)
@@ -296,7 +300,7 @@ class EfficientFrontierSemiAbsoluteCalculator:
         }
 
     def get_minimum_risk(self):
-        ef = EfficientSemiAbsoluteDeviation(self.real_returns, self.predicted_returns)
+        ef = EfficientSemiAbsoluteDeviation(self.mu, self.real_returns, self.predicted_returns)
         weights = ef.min_semi_absolute_deviation()
         cleaned_weights = ef.clean_weights()
         rt, vol, shp = ef.portfolio_performance(verbose=False)
@@ -308,7 +312,7 @@ class EfficientFrontierSemiAbsoluteCalculator:
         }
 
     def get_maximum_return(self, target_volatility=100):
-        ef = EfficientSemiAbsoluteDeviation(self.real_returns, self.predicted_returns)
+        ef = EfficientSemiAbsoluteDeviation(self.mu, self.real_returns, self.predicted_returns)
         weights = ef.efficient_risk(target_semi_deviation=target_volatility)
         cleaned_weights = ef.clean_weights()
         rt, vol, shp = ef.portfolio_performance(verbose=False)
@@ -336,7 +340,7 @@ class EfficientFrontierSemiAbsoluteCalculator:
         return rslt
 
     def get_performance_by_weight(self, weights):
-        ef = EfficientSemiAbsoluteDeviation(self.real_returns, self.predicted_returns)
+        ef = EfficientSemiAbsoluteDeviation(self.mu, self.real_returns, self.predicted_returns)
         weights_dic = {name: weight for name, weight in zip(self.names, weights)}
         ef.set_weights(weights_dic)
         rt, vol, shp = ef.portfolio_performance(verbose=False)
