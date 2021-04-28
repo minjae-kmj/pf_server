@@ -154,7 +154,7 @@ class EfficientSemiAbsoluteDeviation(EfficientFrontier):
         objective_func = cp.sum((cp.abs(predict_error) + predict_error) / (2 * self._T))
         # mu = objective_functions.portfolio_return(self._w, self.close_returns.values)
         mu = objective_functions.portfolio_return(
-            self.weights, np.array(self.close_returns.mean(axis=0)).T, negative=False
+            self._w, np.array(self.close_returns.mean(axis=0)).T, negative=False
         )
         self._objective = mu + 0.5 * risk_aversion * objective_func
 
@@ -183,7 +183,7 @@ class EfficientSemiAbsoluteDeviation(EfficientFrontier):
         :rtype: OrderedDict
         """
         self._objective = objective_functions.portfolio_return(
-            self.weights, np.array(self.close_returns.mean(axis=0)).T, negative=False
+            self._w, np.array(self.close_returns.mean(axis=0)).T, negative=False
         )
         print(self._objective)
         for obj in self._additional_objectives:
@@ -254,13 +254,6 @@ class EfficientSemiAbsoluteDeviation(EfficientFrontier):
         :return: expected return, semiDeviation, Sortino ratio.
         :rtype: (float, float, float)
         """
-        """
-        mu = objective_functions.portfolio_return(
-            self.weights, self.close_returns.values, negative=False
-        )
-        """
-        # mu = cp.sum(self.close_returns.T @ self.weights)
-        print(self.weights)
         print(np.array(self.close_returns.mean(axis=0)))
         mu = objective_functions.portfolio_return(
             self.weights, np.array(self.close_returns.mean(axis=0)).T, negative=False

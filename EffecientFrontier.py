@@ -291,7 +291,7 @@ class EfficientFrontierSemiAbsoluteCalculator:
 
     def get_minimum_risk(self):
         ef = EfficientSemiAbsoluteDeviation(self.real_returns, self.predicted_returns)
-        weights = ef.min_volatility()
+        weights = ef.min_semi_absolute_deviation()
         cleaned_weights = ef.clean_weights()
         rt, vol, shp = ef.portfolio_performance(verbose=False)
         return {

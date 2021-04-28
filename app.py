@@ -101,5 +101,6 @@ def get_similar_eft():
         limit = 5
     return jsonify(etf.calc_match_score(codes=inputs["codes"], limit_count=limit))
 
+
 if __name__ == "__main__":
     app.run(debug=True)
