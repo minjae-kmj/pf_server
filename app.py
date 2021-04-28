@@ -49,11 +49,13 @@ def calc_efficient_frontier():
     else:
         return "please check your input: mode", 400
 
+    min_risk = ef.get_minimum_risk()
+    max_return = ef.get_maximum_return()
     results = {
-        "frontier": ef.get_frontier(),
+        "frontier": [min_risk] + ef.get_frontier() + [max_return],
         "specific": {
-            "min_risk": ef.get_minimum_risk(),
-            "max_returns": ef.get_maximum_return(),
+            "min_risk": min_risk,
+            "max_returns": max_return,
             "max_sharpe": ef.get_maximum_sharpe()
         }
     }
