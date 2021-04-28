@@ -89,8 +89,11 @@ class EfficientFrontierCalculator:
 
         rslt = []
         for vol in np.arange(min_vol, max_vol, 0.001):
-            rslt.append(self.get_maximum_return(target_volatility=vol))
-
+            try:
+                rslt.append(self.get_maximum_return(target_volatility=vol))
+            except Exception as e:
+                print(f'!!!Error!!! Target Vol: {vol}, Min Vol: {min_vol}')
+                print(e)
         return rslt
 
     def get_performance_by_weight(self, weights):
@@ -182,13 +185,16 @@ class EfficientFrontierSemiVarianceCalculator:
         min_vol = self.get_minimum_risk()["risk"]
         max_vol = max(self.get_maximum_sharpe()["risk"], self.get_maximum_return()["risk"])
 
-        min_vol_ceil = math.ceil(min_vol * 1000) / 1000
-        min_vol = min_vol_ceil + 0.001 if min_vol_ceil == min_vol_ceil else min_vol_ceil
+        min_vol = math.ceil(min_vol * 1000) / 1000
         max_vol = math.ceil(max_vol * 1000) / 1000
 
         rslt = []
         for vol in np.arange(min_vol, max_vol, 0.001):
-            rslt.append(self.get_maximum_return(target_volatility=vol))
+            try:
+                rslt.append(self.get_maximum_return(target_volatility=vol))
+            except Exception as e:
+                print(f'!!!Error!!! Target Vol: {vol}, Min Vol: {min_vol}')
+                print(e)
 
         return rslt
 
@@ -317,14 +323,16 @@ class EfficientFrontierSemiAbsoluteCalculator:
         min_vol = self.get_minimum_risk()["risk"]
         max_vol = max(self.get_maximum_sharpe()["risk"], self.get_maximum_return()["risk"])
 
-        min_vol_ceil = math.ceil(min_vol * 1000) / 1000
-        min_vol = min_vol_ceil + 0.001 if min_vol_ceil == min_vol_ceil else min_vol_ceil
+        min_vol = math.ceil(min_vol * 1000) / 1000
         max_vol = math.ceil(max_vol * 1000) / 1000
 
         rslt = []
         for vol in np.arange(min_vol, max_vol, 0.001):
-            rslt.append(self.get_maximum_return(target_volatility=vol))
-
+            try:
+                rslt.append(self.get_maximum_return(target_volatility=vol))
+            except Exception as e:
+                print(f'!!!Error!!! Target Vol: {vol}, Min Vol: {min_vol}')
+                print(e)
         return rslt
 
     def get_performance_by_weight(self, weights):
