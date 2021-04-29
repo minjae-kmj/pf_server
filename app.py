@@ -53,6 +53,7 @@ def calc_efficient_frontier():
     max_return = ef.get_maximum_return()
     results = {
         "frontier": [min_risk] + ef.get_frontier() + [max_return],
+        "worst": ef.get_frontier(non_efficient=True),
         "specific": {
             "min_risk": min_risk,
             "max_returns": max_return,

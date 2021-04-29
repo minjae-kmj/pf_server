@@ -9,7 +9,8 @@ import yfinance as yf
 import math
 
 from pypfopt.efficient_frontier import EfficientFrontier
-from pypfopt.efficient_frontier import EfficientSemivariance
+# from pypfopt.efficient_frontier import EfficientSemivariance
+from PyOptSemiVarianceRev import EfficientSemivarianceRev as EfficientSemivariance
 from pypfopt import risk_models
 from pypfopt import expected_returns
 from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices
@@ -80,20 +81,26 @@ class EfficientFrontierCalculator:
             "weights": self.get_weights_object(cleaned_weights)
         }
 
-    def get_frontier(self):
+    def get_frontier(self, non_efficient=False):
         min_vol = self.get_minimum_risk()["risk"]
         max_vol = max(self.get_maximum_sharpe()["risk"], self.get_maximum_return()["risk"])
 
         min_vol = math.ceil(min_vol * 1000) / 1000
         max_vol = math.ceil(max_vol * 1000) / 1000
+        if non_efficient:
+            max_vol = min_vol * 2 / 3 + max_vol * 1 / 3
 
         rslt = []
         for vol in np.arange(min_vol, max_vol, 0.001):
             try:
-                rslt.append(self.get_maximum_return(target_volatility=vol))
+                if non_efficient:
+                    rslt.append(self.get_worst_return(target_volatility=vol))
+                else:
+                    rslt.append(self.get_maximum_return(target_volatility=vol))
             except Exception as e:
                 print(f'!!!Error!!! Target Vol: {vol}, Min Vol: {min_vol}')
                 print(e)
+
         return rslt
 
     def get_performance_by_weight(self, weights):
@@ -117,6 +124,9 @@ class EfficientFrontierCalculator:
         print(f"Funds remaining: {leftover:.2f}")
 
         return allocation, leftover
+
+    def get_worst_return(self, target_volatility=100):
+        return []
 
 
 class EfficientFrontierSemiVarianceCalculator:
@@ -181,17 +191,34 @@ class EfficientFrontierSemiVarianceCalculator:
             "weights": self.get_weights_object(cleaned_weights)
         }
 
-    def get_frontier(self):
+    def get_worst_return(self, target_volatility=100):
+        ef = EfficientSemivariance(self.mu, self.historical_returns)
+        weights = ef.worst_risk(target_semideviation=target_volatility)
+        cleaned_weights = ef.clean_weights()
+        rt, vol, shp = ef.portfolio_performance(verbose=False)
+        return {
+            "returns": rt,
+            "risk": vol,
+            "sharpe": shp,
+            "weights": self.get_weights_object(cleaned_weights)
+        }
+
+    def get_frontier(self, non_efficient=False):
         min_vol = self.get_minimum_risk()["risk"]
         max_vol = max(self.get_maximum_sharpe()["risk"], self.get_maximum_return()["risk"])
 
         min_vol = math.ceil(min_vol * 1000) / 1000
         max_vol = math.ceil(max_vol * 1000) / 1000
+        if non_efficient:
+            max_vol = min_vol * 2 / 3 + max_vol * 1 / 3
 
         rslt = []
         for vol in np.arange(min_vol, max_vol, 0.001):
             try:
-                rslt.append(self.get_maximum_return(target_volatility=vol))
+                if non_efficient:
+                    rslt.append(self.get_worst_return(target_volatility=vol))
+                else:
+                    rslt.append(self.get_maximum_return(target_volatility=vol))
             except Exception as e:
                 print(f'!!!Error!!! Target Vol: {vol}, Min Vol: {min_vol}')
                 print(e)
@@ -257,7 +284,8 @@ class EfficientFrontierSemiAbsoluteCalculator:
         real_returns = pct_df['Adj Close'].iloc[total_data_count - absolute_error_period:, :]
 
         # if mu is calculated based on "specified period"
-        self.mu = expected_returns.mean_historical_return(df['Adj Close'].iloc[total_data_count - absolute_error_period:, :])
+        self.mu = expected_returns.mean_historical_return(
+            df['Adj Close'].iloc[total_data_count - absolute_error_period:, :])
         # if mu : 1 year
         self.mu = expected_returns.mean_historical_return(df['Adj Close'])
         predicted_returns = real_returns.copy()
@@ -323,20 +351,26 @@ class EfficientFrontierSemiAbsoluteCalculator:
             "weights": self.get_weights_object(cleaned_weights)
         }
 
-    def get_frontier(self):
+    def get_frontier(self, non_efficient=False):
         min_vol = self.get_minimum_risk()["risk"]
         max_vol = max(self.get_maximum_sharpe()["risk"], self.get_maximum_return()["risk"])
 
         min_vol = math.ceil(min_vol * 1000) / 1000
         max_vol = math.ceil(max_vol * 1000) / 1000
+        if non_efficient:
+            max_vol = min_vol * 2 / 3 + max_vol * 1 / 3
 
         rslt = []
         for vol in np.arange(min_vol, max_vol, 0.001):
             try:
-                rslt.append(self.get_maximum_return(target_volatility=vol))
+                if non_efficient:
+                    rslt.append(self.get_worst_return(target_volatility=vol))
+                else:
+                    rslt.append(self.get_maximum_return(target_volatility=vol))
             except Exception as e:
                 print(f'!!!Error!!! Target Vol: {vol}, Min Vol: {min_vol}')
                 print(e)
+
         return rslt
 
     def get_performance_by_weight(self, weights):
@@ -360,3 +394,6 @@ class EfficientFrontierSemiAbsoluteCalculator:
         print(f"Funds remaining: {leftover:.2f}")
 
         return allocation, leftover
+
+    def get_worst_return(self, target_volatility=100):
+        return []
