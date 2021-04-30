@@ -5,6 +5,7 @@ from EffecientFrontier import EfficientFrontierSemiAbsoluteCalculator
 from Ticker import ticker
 import FinanceDataReader as fdr
 from Etf import etf
+from BackTester import BackTester
 
 app = Flask(__name__)
 
@@ -103,6 +104,12 @@ def get_similar_eft():
     if limit is None:
         limit = 5
     return jsonify(etf.calc_match_score(codes=inputs["codes"], limit_count=limit))
+
+
+@app.route("/backtest", methods=["POST"])
+def get_backtest():
+    inputs = request.get_json()
+    return jsonify(BackTester.get_plot(codes=inputs["codes"], weights=inputs["weights"]))
 
 
 if __name__ == "__main__":
