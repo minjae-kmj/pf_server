@@ -125,7 +125,8 @@ class EfficientFrontierCalculator:
 
         return allocation, leftover
 
-    def get_worst_return(self, target_volatility=100):
+    @staticmethod
+    def get_worst_return(target_volatility=100):
         return []
 
 

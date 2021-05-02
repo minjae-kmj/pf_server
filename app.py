@@ -6,6 +6,7 @@ from Ticker import ticker
 import FinanceDataReader as fdr
 from Etf import etf
 from BackTester import BackTester
+from utils import get_history_yields
 
 app = Flask(__name__)
 
@@ -110,6 +111,16 @@ def get_similar_eft():
 def get_backtest():
     inputs = request.get_json()
     return jsonify(BackTester.get_plot(codes=inputs["codes"], weights=inputs["weights"]))
+
+
+@app.route("/dividend_yields", methods=["POST"])
+def get_dividend_yields():
+    inputs = request.get_json()
+    hist_list = get_history_yields(inputs["codes"], inputs["weights"])
+    results = {
+
+    }
+    return jsonify(results)
 
 
 if __name__ == "__main__":
