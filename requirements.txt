@@ -13,3 +13,5 @@ scipy~=1.6.2
 setuptools~=56.0.0
 DateTime~=4.3
 tensorflow~=2.4.1
+gevent
+gunicorn
